@@ -4,6 +4,7 @@ import http from "node:http";
 import { once } from "node:events";
 import { getForwardedHeaders } from "../src/lib/getForwardedHeaders.js";
 import proxyM3U8 from "../src/lib/proxyM3U8.js";
+import { parseVlcOptions } from "../src/lib/vlcOptions.js";
 
 test("forwards browser-style headers while removing hop-by-hop values", () => {
   const forwarded = getForwardedHeaders({
@@ -21,6 +22,22 @@ test("forwards browser-style headers while removing hop-by-hop values", () => {
   assert.equal(forwarded.host, undefined);
   assert.equal(forwarded.connection, undefined);
   assert.equal(forwarded.cookie, undefined);
+});
+
+test("extracts VLC-style options from playlist content", () => {
+  const playlist = `#EXTM3U
+#EXTVLCOPT:http-referrer=https://www.fawanews.sc/
+#EXTVLCOPT:http-origin=https://www.fawanews.sc/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 Test Browser
+#EXTINF:1,
+segment.ts
+`;
+
+  const options = parseVlcOptions(playlist);
+
+  assert.equal(options.referrer, "https://www.fawanews.sc/");
+  assert.equal(options.origin, "https://www.fawanews.sc/");
+  assert.equal(options.userAgent, "Mozilla/5.0 Test Browser");
 });
 
 test("passes through upstream 403 responses instead of masking them as 500s", async () => {

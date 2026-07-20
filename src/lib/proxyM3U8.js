@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { getForwardedHeaders } from "./getForwardedHeaders.js";
+import { injectVlcOptions, parseVlcOptions } from "./vlcOptions.js";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ export default async function proxyM3U8(url, headers, res) {
   if (!req) {
     return;
   }
+  const vlcOptions = parseVlcOptions(req.data);
   const m3u8 = req.data
     .split("\n")
     //now it supports also proxying multi-audio streams
@@ -101,7 +103,13 @@ export default async function proxyM3U8(url, headers, res) {
     res.setHeader("Access-Control-Allow-Headers", "*");
     res.setHeader("Access-Control-Allow-Methods", "*");
 
-    res.end(newLines.join("\n"));
+    const finalPlaylist = injectVlcOptions(newLines.join("\n"), {
+      referrer: vlcOptions.referrer || headers?.referer || headers?.Referer || "https://www.fawanews.sc/",
+      origin: vlcOptions.origin || headers?.origin || headers?.Origin || "https://www.fawanews.sc/",
+      userAgent: vlcOptions.userAgent || headers?.["user-agent"] || headers?.["User-Agent"] || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0",
+    });
+
+    res.end(finalPlaylist);
     return;
   } else {
     const lines = m3u8.split("\n");
@@ -158,7 +166,13 @@ export default async function proxyM3U8(url, headers, res) {
     res.setHeader("Access-Control-Allow-Headers", "*");
     res.setHeader("Access-Control-Allow-Methods", "*");
 
-    res.end(newLines.join("\n"));
+    const finalPlaylist = injectVlcOptions(newLines.join("\n"), {
+      referrer: vlcOptions.referrer || headers?.referer || headers?.Referer || "https://www.fawanews.sc/",
+      origin: vlcOptions.origin || headers?.origin || headers?.Origin || "https://www.fawanews.sc/",
+      userAgent: vlcOptions.userAgent || headers?.["user-agent"] || headers?.["User-Agent"] || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0",
+    });
+
+    res.end(finalPlaylist);
     return;
   }
 }
