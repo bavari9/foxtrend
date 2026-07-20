@@ -1,5 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { getForwardedHeaders } from "./getForwardedHeaders.js";
 
 dotenv.config();
 
@@ -8,11 +9,24 @@ const port = process.env.PORT || 8080;
 const web_server_url = process.env.PUBLIC_URL || `http://${host}:${port}`;
 
 export default async function proxyM3U8(url, headers, res) {
+  const forwardedHeaders = getForwardedHeaders(headers);
   const req = await axios(url, {
-    headers: headers,
+    headers: forwardedHeaders,
   }).catch((err) => {
-    res.writeHead(500);
-    res.end(err.message);
+    const statusCode = err.response?.status ?? 502;
+    const contentType = err.response?.headers?.["content-type"] || "text/plain; charset=utf-8";
+    const body =
+      typeof err.response?.data === "string"
+        ? err.response.data
+        : err.response?.data || err.message || "Proxy request failed";
+
+    res.writeHead(statusCode, {
+      "Content-Type": contentType,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "*",
+      "Access-Control-Allow-Methods": "*",
+    });
+    res.end(body);
     return null;
   });
   if (!req) {

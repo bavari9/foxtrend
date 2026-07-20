@@ -1,5 +1,6 @@
 import https from "node:https";
 import http from "node:http";
+import { getForwardedHeaders } from "./getForwardedHeaders.js";
 
 export async function proxyTs(url, headers, req, res) {
   let forceHTTPS = false;
@@ -9,6 +10,7 @@ export async function proxyTs(url, headers, req, res) {
   }
 
   const uri = new URL(url);
+  const forwardedHeaders = getForwardedHeaders(headers);
   const options = {
     hostname: uri.hostname,
     port: uri.port,
@@ -17,7 +19,7 @@ export async function proxyTs(url, headers, req, res) {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36",
-      ...headers,
+      ...forwardedHeaders,
     },
   };
   res.setHeader("Access-Control-Allow-Origin", "*");
