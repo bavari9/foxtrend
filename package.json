@@ -1,14 +1,19 @@
 {
   "name": "eurowebtv-extractor",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "npm rebuild sharp --build-from-source"
   },
   "dependencies": {
     "express": "^4.18.2",
     "axios": "^1.6.0",
     "tesseract.js": "^5.0.0",
     "compression": "^1.7.4",
-    "node-cache": "^5.1.2"
+    "node-cache": "^5.1.2",
+    "sharp": "^0.32.6"
+  },
+  "engines": {
+    "node": "18.17.1"
   }
 }
